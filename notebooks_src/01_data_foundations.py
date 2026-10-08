@@ -1,7 +1,7 @@
 # %% [markdown]
 # # 01 - Data foundations: genotype arrays, QC, and what a "genetic grouping" can mean
 #
-# This notebook is the first step of the *poreklo* walkthrough. It explains the
+# This notebook is the first step of the *balkan-study* walkthrough. It explains the
 # raw material of the whole project: autosomal SNP array genotypes from 70
 # western Balkan individuals (Kovacevic et al. 2014, GEO GSE59032) plus a
 # present-day reference panel decoded from the Allen Ancient DNA Resource
@@ -31,7 +31,7 @@ ROOT = Path.cwd()
 if not (ROOT / "data").exists() and (ROOT.parent / "data").exists():
     ROOT = ROOT.parent
 sys.path.insert(0, str(ROOT / "scripts"))
-import poreklo_io as pio
+import balkan_study_io as pio
 
 FIG = ROOT / "results" / "figures"
 TAB = ROOT / "results" / "tables"
@@ -59,7 +59,7 @@ print("plink2:", subprocess.run([PLINK2, "--version"], capture_output=True, text
 # The PLINK `.bed` file stores these as 2-bit codes:
 # `00 = hom A1`, `01 = missing`, `10 = het`, `11 = hom A2`.
 # The `.bim` file names the alleles for each SNP, and the `.fam` file lists the
-# samples. `scripts/poreklo_io.py` wraps numpy readers/writers for this format.
+# samples. `scripts/balkan_study_io.py` wraps numpy readers/writers for this format.
 #
 # Our merged dataset contains:
 #

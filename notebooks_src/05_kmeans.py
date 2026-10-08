@@ -40,7 +40,7 @@ ROOT = Path.cwd()
 if not (ROOT / "data").exists() and (ROOT.parent / "data").exists():
     ROOT = ROOT.parent
 sys.path.insert(0, str(ROOT / "scripts"))
-import poreklo_io as pio
+import balkan_study_io as pio
 
 FIG = ROOT / "results" / "figures"
 NB05 = ROOT / "data" / "processed" / "nb05"

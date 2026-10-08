@@ -1,4 +1,4 @@
-# poreklo
+# balkan-study
 
 Do self-identified nations in the Western Balkans correspond to genetic
 groupings? This project is a learning-oriented walkthrough that builds from raw

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "== poreklo environment =="
+echo "== balkan-study environment =="
 echo "root: $PWD"
 
 for tool in plink2 admixture bcftools python jupyter; do

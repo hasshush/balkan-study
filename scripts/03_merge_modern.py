@@ -25,7 +25,7 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import poreklo_io as pio
+import balkan_study_io as pio
 
 ROOT = Path(__file__).resolve().parents[1]
 GEO_PREFIX = ROOT / "data" / "processed" / "geo_balkan"

@@ -1,5 +1,5 @@
 {
-  description = "poreklo - genetic structure of Western Balkan populations";
+  description = "balkan-study - genetic structure of Western Balkan populations";
 
   inputs.nixpkgs.url = "nixpkgs";
 
@@ -44,8 +44,8 @@
         ];
 
         shellHook = ''
-          export POREKLO_ROOT="$PWD"
-          echo "poreklo dev shell"
+          export BALKAN_STUDY_ROOT="$PWD"
+          echo "balkan-study dev shell"
           echo "  plink2:   $(plink2 --version 2>&1 | head -1)"
           echo "  admixture: $(admixture --version 2>&1 | grep -o 'Version [0-9.]*' | head -1)"
           echo "  python:   $(python --version 2>&1)"
