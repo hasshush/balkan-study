@@ -1,75 +1,91 @@
 # poreklo
 
-Genetic structure of Western Balkan populations: do self-identified nations
-correspond to genetic groupings?
-
-The project is a learning-oriented walkthrough that builds up to a test of
-whether nation membership can be predicted from autosomal genotype data
-better than chance, once geography is accounted for.
-
-## Research question
-
-- How is genetic variation structured among Western Balkan populations?
-- Do self-identified nations (Bosniacs, Bosnian Serbs, Serbians,
-  Montenegrins, Macedonians, Kosovars, Croats, ...) correspond to genetic
-  clusters?
-- Can nation be predicted from genotype, and does nation explain variation
-  beyond geographic distance?
+Do self-identified nations in the Western Balkans correspond to genetic
+groupings? This project is a learning-oriented walkthrough that builds from raw
+genotype data to a direct statistical test of that question.
 
 ## Data
 
 | Dataset | Role | Source |
 |---|---|---|
-| Kovacevic et al. 2014, GSE59032 | 70 western Balkan individuals, Illumina Human660W-Quad | NCBI GEO |
-| AADR (Reich lab) | modern reference populations (Europe/Balkans) | Harvard Dataverse |
-| Carrión et al. 2023 ancients (PMC10752003) | ancient Balkan genomes, kept separate | ENA |
+| Kovacevic et al. 2014 (GSE59032) | 70 western Balkan individuals: Bosniac, Bosnian Serb, Serbian, Montenegrin, Macedonian, Kosovar | NCBI GEO |
+| AADR v66.p1 (Reich lab) | 2,304 present-day reference samples: Croatian, Bulgarian, Greek, Albanian, Romanian, Moldavian, Hungarian, Gagauz, Turkish and wider Europe / West Asia | Harvard Dataverse, doi:10.7910/DVN/FFIDCW |
+| AADR v66.p1 + Olalde & Carrion et al. 2023 | 679 ancient Balkan individuals (1st millennium CE), kept in a **separate** track | ENA PRJEB66422 / AADR |
 
-Details, hashes and versions are recorded in `provenance.md`.
+The merged modern dataset contains **129,269 SNPs x 2,374 samples** (70 GEO +
+2,304 reference). Details and checksums: `provenance.md`.
 
-Note: GEO GSE59032 contains only the 70 newly genotyped samples. The 20
-Croatians/Bosnian Croats and the global reference samples used in the paper
-come from other published sources.
+## Key findings
 
-## Environment
+- **No separable nation clusters.** PCA shows one continuous north-west to
+  south-east cline shared by all six nations; Kosovars sit at one edge,
+  Bosniacs/Croats at the other. ADMIXTURE components are shared across nations.
+- **Nation labels carry a weak but real signal.** Between-nation Hudson FST is
+  ~0.0014 (permutation p ~ 0.001); random splits *within* a nation give FST
+  values near zero. This is 1-2 orders of magnitude below between-country
+  differentiation elsewhere in Europe.
+- **The signal is weak, not decisive.** K-means partitions align with nation
+  labels only slightly (ARI 0.04-0.13, p <= 0.03 depending on K).
+- **Classification is above chance but far from perfect.** Logistic regression /
+  random forest on PCA scores reach balanced accuracy ~0.45-0.47 against a
+  chance level of 0.167 (p ~ 0.001). The same pipeline separates six reference
+  populations at ~0.96. People are closer on average to their own nation's
+  samples (p ~ 0.02), but the effect is tiny.
+- **Mostly geography.** Sampling towns differ between nations, so the weak
+  predictability is entangled with place; the Mantel tests with coarse
+  group-level coordinates cannot separate the two.
+- **One shared gene pool.** Genetics neither validates nor invalidates national
+  identities: all six groups sit on the same South Slavic cline, which
+  ancient DNA shows was shaped by local continuity plus Roman-era and
+  Migration-period gene flow.
 
-NixOS with flakes enabled. From the repository root:
+## Notebooks
 
+Run `nix develop` (or `nix-shell`) from the repo root, then `jupyter lab`.
+
+| Notebook | Contents |
+|---|---|
+| `01_data_foundations` | genotype arrays, dosages, missingness, MAF, HWE, LD pruning, relatedness, heterozygosity |
+| `02_pca` | PCA intuition with simulations (clusters vs cline), real PCA of the Balkans |
+| `03_admixture` | soft clustering, K selection by CV, label switching |
+| `04_fst_amova` | Hudson FST, permutation test of nation labels, within vs between |
+| `05_kmeans` | your original idea: k-means on PCs, K selection, ARI vs labels, permutation nulls |
+| `06_nation_test` | supervised classification with cross-validation, own-group distance test, Mantel / partial Mantel |
+| `07_ancient` | **separate track**: 679 ancient Balkan genomes projected next to the modern cline |
+
+## Reproduce
+
+```bash
+nix develop
+bash scripts/00_download_geo.sh                 # GEO genotypes + metadata (~820 MB)
+WITH_GENO=1 bash scripts/00_download_aadr.sh    # AADR .snp/.ind/.anno/.geno (~11 GB)
+python scripts/01_geo_to_plink.py               # GenomeStudio -> PLINK (530,659 SNPs)
+python scripts/02_aadr_to_plink.py              # AADR tgeno -> PLINK panel
+python scripts/03_merge_modern.py               # frequency-based orientation + merge
+python scripts/06_aadr_ancient_to_plink.py      # ancient track
+python scripts/build_notebooks.py               # notebooks_src/*.py -> notebooks/*.ipynb
+bash scripts/05_admixture_panel.sh              # cached ADMIXTURE K=2..7
+jupyter nbconvert --to notebook --execute --inplace notebooks/*.ipynb
 ```
-nix develop          # or: nix-shell
-bash scripts/check_env.sh
-```
 
-The shell provides `plink2`, `admixture` (packaged in `nix/admixture.nix`),
-`bcftools`, and a Python environment with numpy/scipy/pandas/scikit-learn/
-matplotlib/seaborn/statsmodels/jupyterlab.
+Notes:
+
+- `scripts/01_geo_to_plink.py` handles GEO's GenomeStudio-format output; the
+  AADR `tgeno` format is decoded in `scripts/02_aadr_to_plink.py` (format
+  validated against 1000 Genomes genotypes, see `provenance.md`).
+- GEO allele orientation is unknown without the Illumina manifest; it is
+  resolved by matching allele frequencies against the reference panel
+  (`scripts/03_merge_modern.py`, frequency correlation r = 0.967).
+- All scripts cache their outputs; re-running is cheap after the first pass.
 
 ## Layout
 
 ```
-nix/            package definitions (admixture)
-scripts/        download, conversion and QC scripts
-notebooks/      numbered walkthrough (01 .. 07)
-data/raw/       untouched downloads (gitignored)
-data/processed/ PLINK datasets and metadata (gitignored)
-data/reference/ AADR / reference panels (gitignored)
-data/ancient/   2023 Cell ancient data, analyzed separately (gitignored)
-results/        figures and tables (gitignored)
-provenance.md   data provenance log
+nix/admixture.nix       packaged ADMIXTURE 1.4.0
+scripts/                download, format conversion, merge, notebook builder
+notebooks_src/          notebook sources (plain Python, # %% cells)
+notebooks/              generated and executed notebooks
+data/raw|reference|processed|ancient|metadata/
+results/figures|tables/
+provenance.md           downloads, hashes, format notes
 ```
-
-## Walkthrough
-
-1. `01_data_foundations` - genotype arrays, dosages, QC, conversion to PLINK
-2. `02_pca` - PCA intuition via simulations, then real data
-3. `03_admixture` - model-based soft clustering, K selection
-4. `04_fst_amova` - differentiation between populations
-5. `05_kmeans` - k-means on PCs, K selection, permutation nulls
-6. `06_nation_test` - supervised prediction and geography controls
-7. `07_ancient` - separate track for ancient samples
-
-## Working notes
-
-- Ancient samples are never merged into the modern analysis.
-- All random steps use recorded seeds.
-- Balkan FST values are tiny (~0.0005-0.001); results are reported with
-  permutation tests and confidence intervals, not just point estimates.
