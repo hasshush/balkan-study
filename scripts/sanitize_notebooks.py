@@ -8,9 +8,10 @@ paths after execution.
 
 from pathlib import Path
 
+ROOT = str(Path.cwd().resolve())
 REPLACEMENTS = [
-    ("/home/lambda/poreklo", "."),
-    ("/home/lambda", "~"),
+    (ROOT, "."),
+    (str(Path.home()), "~"),
 ]
 
 
