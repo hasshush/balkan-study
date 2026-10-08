@@ -1,0 +1,12 @@
+/data/raw/
+/data/processed/
+/data/reference/
+/data/ancient/
+/tools/
+/results/figures/
+/results/tables/
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+result
+.direnv/
